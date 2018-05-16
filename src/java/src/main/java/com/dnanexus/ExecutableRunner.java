@@ -73,6 +73,8 @@ public abstract class ExecutableRunner<T extends DXExecution> {
         @JsonProperty
         private final String name;
         @JsonProperty
+        private final String instanceType;
+        @JsonProperty
         private final List<String> dependsOn;
         @JsonProperty
         private final String project;
@@ -93,6 +95,7 @@ public abstract class ExecutableRunner<T extends DXExecution> {
         public ExecutableRunRequest(ExecutableRunner<?> runner) {
             this.input = runner.input;
             this.name = runner.name;
+            this.instanceType = runner.instanceType;
             this.dependsOn = runner.getDependencies();
             this.project = runner.project;
             this.folder = runner.folder;
@@ -169,6 +172,7 @@ public abstract class ExecutableRunner<T extends DXExecution> {
 
     private JsonNode input;
     private String name;
+    private String instanceType;
     private String project;
     private String folder;
     private Boolean delayWorkspaceDestruction;
@@ -394,6 +398,20 @@ public abstract class ExecutableRunner<T extends DXExecution> {
     public ExecutableRunner<T> setName(String name) {
         Preconditions.checkState(this.name == null, "withName cannot be called more than once");
         this.name = Preconditions.checkNotNull(name, "name may not be null");
+        return this;
+    }
+
+
+    /**
+     * Sets the instance type of the resulting execution.
+     *
+     * @param name instance type
+     *
+     * @return the same runner object
+     */
+    public ExecutableRunner<T> setInstanceType(String instanceType) {
+        Preconditions.checkState(this.instanceType == null, "setInstanceType cannot be called more than once");
+        this.instanceType = Preconditions.checkNotNull(instanceType, "instanceType may not be null");
         return this;
     }
 
