@@ -72,8 +72,9 @@ public abstract class ExecutableRunner<T extends DXExecution> {
         private final JsonNode input;
         @JsonProperty
         private final String name;
+        // mapping from entry points to instance types
         @JsonProperty
-        private final String instanceType;
+        private Map<String, String> systemRequirements;
         @JsonProperty
         private final List<String> dependsOn;
         @JsonProperty
@@ -89,13 +90,14 @@ public abstract class ExecutableRunner<T extends DXExecution> {
         @JsonProperty
         private Map<String, String> properties;
 
-        // TODO: systemRequirements
-        // TODO: executionPolicy
+        // TODO: executionPolic
 
         public ExecutableRunRequest(ExecutableRunner<?> runner) {
             this.input = runner.input;
             this.name = runner.name;
-            this.instanceType = runner.instanceType;
+            if (runner.systemRequirements != null) {
+                this.systemRequirements = runner.systemRequirements.build();
+            }
             this.dependsOn = runner.getDependencies();
             this.project = runner.project;
             this.folder = runner.folder;
@@ -172,7 +174,7 @@ public abstract class ExecutableRunner<T extends DXExecution> {
 
     private JsonNode input;
     private String name;
-    private String instanceType;
+    private ImmutableMap.Builder<String, String> systemRequirements;
     private String project;
     private String folder;
     private Boolean delayWorkspaceDestruction;
@@ -313,6 +315,25 @@ public abstract class ExecutableRunner<T extends DXExecution> {
      *
      * @return the same {@code Builder} object
      */
+    public ExecutableRunner<T> setInstanceType(String entryPoint, String instanceType) {
+        if (this.systemRequirements == null) {
+            this.systemRequirements = ImmutableMap.builder();
+        }
+        this.systemRequirements.put(Preconditions.checkNotNull(entryPoint, "Property key may not be null"),
+                                    Preconditions.checkNotNull(instanceType, "Value for property " + entryPoint
+                                                               + " may not be null"));
+        return this;
+    }
+
+
+    /**
+     * Sets the specified properties on the execution to be created.
+     *
+     * @param properties Map containing non-null keys and values which will be set as property keys
+     *        and values respectively
+     *
+     * @return the same {@code Builder} object
+     */
     public ExecutableRunner<T> putAllProperties(Map<String, String> properties) {
         for (Map.Entry<String, String> e : properties.entrySet()) {
             putProperty(e.getKey(), e.getValue());
@@ -401,19 +422,6 @@ public abstract class ExecutableRunner<T extends DXExecution> {
         return this;
     }
 
-
-    /**
-     * Sets the instance type of the resulting execution.
-     *
-     * @param name instance type
-     *
-     * @return the same runner object
-     */
-    public ExecutableRunner<T> setInstanceType(String instanceType) {
-        Preconditions.checkState(this.instanceType == null, "setInstanceType cannot be called more than once");
-        this.instanceType = Preconditions.checkNotNull(instanceType, "instanceType may not be null");
-        return this;
-    }
 
     /**
      * Sets the project context of the resulting execution.
